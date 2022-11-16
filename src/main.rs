@@ -54,7 +54,7 @@ fn bogo_search(array: &[String], verbose: bool, term: String) {
     }
 }
 
-fn hash_1(s: String) {
+fn hash_1(s: String) -> i32 {
     let mut hash = 0;
     let size = s.len();
 
@@ -62,10 +62,10 @@ fn hash_1(s: String) {
         hash = hash + (s.chars().nth(i)).unwrap() as i32 - 0x30;
     }
 
-    println!("{hash}");
+    hash
 }
 
-fn hash_2(s: String) {
+fn hash_2(s: String) -> i32 {
     let mut hash = 7;
     let size = s.len();
 
@@ -73,12 +73,10 @@ fn hash_2(s: String) {
         hash = (hash * 31 + (s.chars().nth(i)).unwrap() as i32 - 0x30) % size as i32;
     }
 
-    hash = hash % size as i32;
-
-    println!("{hash}");
+    hash % size as i32
 }
 
-fn hash_3(s: String) {
+fn hash_3(s: String) -> i32 {
     let mut hash = 7;
     let p = 7;
     let size = s.len();
@@ -89,36 +87,52 @@ fn hash_3(s: String) {
         hash = hash % size as i64;
     }
 
-    println!("{hash}");
+    hash as i32
 }
+
+struct BloomFilter {
+    false_positive: f32,
+    size: i32,
+}
+
+trait Filter {}
 
 fn main() {
     let mut num_vec: Vec<String> = vec![String::new(); 17000];
     get_array(&mut num_vec).unwrap();
     num_vec.shuffle(&mut thread_rng());
+    let length = num_vec.len();
 
     let mut rng = rand::thread_rng();
 
     let x: usize = rng.gen_range(0..num_vec.len());
     let term: String = num_vec[x].clone();
 
-    println!("Term is {term}");
+    println!("The randomly selected term is '{term}'");
 
-    hash_1(term.clone());
-    hash_2(term.clone());
-    hash_3(term.clone());
+    // Calculate all of the hashes for the term
+    let one = hash_1(term.clone());
+    let two = hash_2(term.clone());
+    let three = hash_3(term.clone());
+    println!("The hashes for '{term}' are {one}, {two}, {three}\n");
 
     let verbose = false;
     if verbose {
         print_array(&num_vec);
     }
 
+    println!(
+        "This will test how fast the word '{term}' can be found in the array of {length} words."
+    );
+
+    // Test the time it takes for linear search
     let before = Instant::now();
     for _ in 0..100 {
         linear_search(&mut num_vec, false, term.clone());
     }
     println!("Elapsed time for linear_search: {:.2?}", before.elapsed());
 
+    // Test the time is takes for bogo search
     let before = Instant::now();
     for _ in 0..100 {
         bogo_search(&mut num_vec, false, term.clone());
