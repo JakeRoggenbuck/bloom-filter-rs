@@ -7,51 +7,31 @@ use std::fs::File;
 use std::io::{prelude::*, BufReader};
 use std::time::Instant;
 
-fn get_array(num_vec: &mut [String]) -> Result<()> {
-    let file = File::open("english-words/words.txt")?;
-    let reader = BufReader::new(file);
-
-    let mut index = 0;
-    for line in reader.lines() {
-        if index < num_vec.len() {
-            num_vec[index] = line?;
-        }
-        index += 1;
-    }
-
-    Ok(())
-}
-
-fn print_array(array: &[String]) {
+/// Print an entire array
+pub fn print_array(array: &[String]) {
     for c in array {
         println!("{c}");
     }
 }
 
-fn linear_search(array: &[String], verbose: bool, term: String) {
-    let mut index = 0;
+/// Search for the term using linear search
+fn linear_search(array: &[String], term: String) -> bool {
     for c in array {
         if c == term.as_str() {
-            if verbose {
-                println!("Found! {index}");
-            }
+            return true;
         }
-        index += 1;
     }
+    return false;
 }
 
-fn bogo_search(array: &[String], verbose: bool, term: String) {
-    let mut times = 0;
+/// Search for the term using the worst search algorithm, bogo search
+fn bogo_search(array: &[String], term: String) -> bool {
     let mut num: usize;
     loop {
         num = thread_rng().gen_range(0..array.len());
         if array[num] == term.as_str() {
-            if verbose {
-                println!("Found! {num} with {} times", times);
-            }
-            break;
+            return true;
         }
-        times += 1;
     }
 }
 
@@ -62,7 +42,6 @@ fn hash_1(s: String) -> i32 {
     for i in 0..size {
         hash = hash + (s.chars().nth(i)).unwrap() as i32 - 0x30;
     }
-
     hash
 }
 
@@ -73,7 +52,6 @@ fn hash_2(s: String) -> i32 {
     for i in 0..size {
         hash = (hash * 31 + (s.chars().nth(i)).unwrap() as i32 - 0x30) % size as i32;
     }
-
     hash % size as i32
 }
 
@@ -122,35 +100,45 @@ impl Filter for BloomFilter {
     }
 }
 
+fn fill_array_and_bloom_filter(num_vec: &mut [String], bf: &mut BloomFilter) -> Result<()> {
+    let file = File::open("english-words/words.txt")?;
+    let reader = BufReader::new(file);
+
+    let mut index = 0;
+    for line in reader.lines() {
+        if index < num_vec.len() {
+            let l = line?;
+            // Add word to array
+            num_vec[index] = l.clone();
+            // Add word to bloom filter
+            bf.add(l);
+        }
+        index += 1;
+    }
+
+    Ok(())
+}
+
 fn main() {
-    let mut num_vec: Vec<String> = vec![String::new(); 17000];
-    get_array(&mut num_vec).unwrap();
-    num_vec.shuffle(&mut thread_rng());
-    let length = num_vec.len();
-
-    let mut rng = rand::thread_rng();
-
-    let x: usize = rng.gen_range(0..num_vec.len());
-    let term: String = num_vec[x].clone();
-
+    // Set up bloom filter
     let mut bf = BloomFilter {
         bitvector: BitVec::from_elem(10000, false),
         hash_count: 3,
         size: 10000,
     };
 
-    let file = File::open("english-words/words.txt").unwrap();
-    let reader = BufReader::new(file);
+    // Set up num vec
+    let mut num_vec: Vec<String> = vec![String::new(); 17000];
 
-    let mut index = 0;
-    for line in reader.lines() {
-        if index < num_vec.len() {
-            let l = line.unwrap();
-            bf.add(l);
-        }
-        index += 1;
-    }
+    fill_array_and_bloom_filter(&mut num_vec, &mut bf).unwrap();
+    num_vec.shuffle(&mut thread_rng());
 
+    let length = num_vec.len();
+
+    // Pick random term
+    let mut rng = rand::thread_rng();
+    let x: usize = rng.gen_range(0..num_vec.len());
+    let term: String = num_vec[x].clone();
     println!("The randomly selected term is '{term}'");
 
     // Calculate all of the hashes for the term
@@ -159,11 +147,6 @@ fn main() {
     let three = hash_3(term.clone());
     println!("The hashes for '{term}' are {one}, {two}, {three}\n");
 
-    let verbose = false;
-    if verbose {
-        print_array(&num_vec);
-    }
-
     println!(
         "This will test how fast the word '{term}' can be found in the array of {length} words."
     );
@@ -171,7 +154,7 @@ fn main() {
     // Test the time it takes for linear search
     let before = Instant::now();
     for _ in 0..100 {
-        linear_search(&mut num_vec, false, term.clone());
+        linear_search(&mut num_vec, term.clone());
     }
     println!("Elapsed time for linear_search: {:.2?}", before.elapsed());
 
@@ -188,7 +171,7 @@ fn main() {
     // Test the time is takes for bogo search
     let before = Instant::now();
     for _ in 0..100 {
-        bogo_search(&mut num_vec, false, term.clone());
+        bogo_search(&mut num_vec, term.clone());
     }
     println!("Elapsed time for bogo_search: {:.2?}", before.elapsed());
 }
