@@ -11,5 +11,30 @@ git submodule update
 ```
 
 ## Results
-- Elapsed time for linear_search: 122.46ms
-- Elapsed time for bogo_search: 2.33s
+```
+The randomly selected term is 'amicabilities'
+The hashes for 'amicabilities' are 736, 11, 54
+
+This will test how fast the word 'amicabilities' can be found in the array of 17000 words.
+Elapsed time for linear_search: 220.81ms
+Elapsed time for bloom filter check: 3.61ms
+Elapsed time for bogo_search: 4.64s
+```
+```
+The randomly selected term is 'Aldermaston'
+The hashes for 'Aldermaston' are 618, 0, 21
+
+This will test how fast the word 'Aldermaston' can be found in the array of 17000 words.
+Elapsed time for linear_search: 245.29ms
+Elapsed time for bloom filter check: 2.69ms
+Elapsed time for bogo_search: 5.53s
+```
+```
+The randomly selected term is 'Achille'
+The hashes for 'Achille' are 354, 1, 24
+
+This will test how fast the word 'Achille' can be found in the array of 17000 words.
+Elapsed time for linear_search: 273.41ms
+Elapsed time for bloom filter check: 1.30ms
+Elapsed time for bogo_search: 6.68s
+```
