@@ -39,8 +39,8 @@ Elapsed time for bloom filter check: 1.30ms
 Elapsed time for bogo_search: 6.68s
 ```
 
-![Linear, Bloom filter and Bogo (in ms)](https://user-images.githubusercontent.com/35516367/202333518-2b3e5e2e-22dd-4958-9832-680a5d6a2a70.png)
 
-![Linear and Bloom filter (in ms)](https://user-images.githubusercontent.com/35516367/202333510-18b69238-04f7-4e62-8990-c8f8f0c11aec.png)
+![Linear and Bloom filter (in ms)](https://user-images.githubusercontent.com/35516367/202334238-5aaa4157-d613-4ace-bcaa-c28c0cadb3a1.png)
+![Linear, Bloom filter and Bogo (in ms)](https://user-images.githubusercontent.com/35516367/202334239-55aabb02-b24b-4091-99b3-b86ea67a9dfc.png)
 
 
