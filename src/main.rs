@@ -1,4 +1,5 @@
 use anyhow::Result;
+use bit_vec::BitVec;
 use rand::seq::SliceRandom;
 use rand::thread_rng;
 use rand::Rng;
@@ -77,25 +78,49 @@ fn hash_2(s: String) -> i32 {
 }
 
 fn hash_3(s: String) -> i32 {
-    let mut hash = 7;
-    let p = 7;
-    let size = s.len();
-
-    for i in 0..size {
-        hash = (hash * 7 + (s.chars().nth(i)).unwrap() as i64 - 0x30)
-            * i64::pow(p, i.try_into().unwrap());
-        hash = hash % size as i64;
-    }
-
-    hash as i32
+    (hash_2(s) + 7) * 3
 }
 
 struct BloomFilter {
-    false_positive: f32,
-    size: i32,
+    size: usize,
+    hash_count: i8,
+    bitvector: BitVec,
 }
 
-trait Filter {}
+trait Filter {
+    fn add(&mut self, value: String);
+    fn check(&self, value: String) -> bool;
+    fn hash(&self, s: String, i: usize) -> i32;
+}
+
+impl Filter for BloomFilter {
+    fn add(&mut self, value: String) {
+        for x in 0..self.hash_count {
+            let v = self.hash(value.clone(), x.try_into().unwrap());
+            let k = v as usize % self.size;
+
+            self.bitvector.set(k, true);
+        }
+    }
+
+    fn check(&self, value: String) -> bool {
+        let mut acc = 0;
+        for x in 0..self.hash_count {
+            let v = self.hash(value.clone(), x.try_into().unwrap());
+            let k = v as usize % self.size;
+
+            if self.bitvector.get(k).unwrap_or(false) {
+                acc += 1;
+            }
+        }
+        return acc >= self.hash_count;
+    }
+
+    fn hash(&self, s: String, i: usize) -> i32 {
+        let functions: [&dyn Fn(String) -> i32; 3] = [&hash_1, &hash_2, &hash_3];
+        return functions[i](s);
+    }
+}
 
 fn main() {
     let mut num_vec: Vec<String> = vec![String::new(); 17000];
@@ -107,6 +132,24 @@ fn main() {
 
     let x: usize = rng.gen_range(0..num_vec.len());
     let term: String = num_vec[x].clone();
+
+    let mut bf = BloomFilter {
+        bitvector: BitVec::from_elem(10000, false),
+        hash_count: 3,
+        size: 10000,
+    };
+
+    let file = File::open("english-words/words.txt").unwrap();
+    let reader = BufReader::new(file);
+
+    let mut index = 0;
+    for line in reader.lines() {
+        if index < num_vec.len() {
+            let l = line.unwrap();
+            bf.add(l);
+        }
+        index += 1;
+    }
 
     println!("The randomly selected term is '{term}'");
 
@@ -131,6 +174,16 @@ fn main() {
         linear_search(&mut num_vec, false, term.clone());
     }
     println!("Elapsed time for linear_search: {:.2?}", before.elapsed());
+
+    // Test the time it takes for bloom filter check
+    let before = Instant::now();
+    for _ in 0..100 {
+        bf.check(term.clone());
+    }
+    println!(
+        "Elapsed time for bloom filter check: {:.2?}",
+        before.elapsed()
+    );
 
     // Test the time is takes for bogo search
     let before = Instant::now();
