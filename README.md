@@ -4,6 +4,25 @@ What makes a bloom filter unique is that is that it gives up full accuracy for h
 A bloom filter has small false positive rate, and this rate can be decreased by using more memory and more hash algorithms, however you can find an optimal amount of memory and hash algorithm count to achieve great speed while still maintaining lower memory than a normal list.
 This specific implementation uses three different hashing algorithms.
 
+Bloom filters usually have two methods associated with the structure.
+1. **add** an item to the structure
+```rs
+fn add(&mut self, value: String);
+```
+2. **check** if an item likely exists in the structure
+```rs
+fn check(&self, value: String) -> bool;
+```
+
+We will define a structure in Rust to represent the bloom filter.
+```rs
+struct BloomFilter {
+    size: usize,
+    hash_count: i8,
+    bitvector: BitVec,
+}
+```
+
 ## Words Submodule
 ```
 git submodule init
