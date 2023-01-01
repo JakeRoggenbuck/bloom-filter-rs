@@ -1,4 +1,5 @@
 # bloom-filter-rs
+View blog post at [jr0.org/posts/bloom-filters](https://jr0.org/posts/bloom-filters/)
 
 ## Intro
 A bloom filters is a data structure that allows you to quickly identify if some data has been previously added to the structure.
