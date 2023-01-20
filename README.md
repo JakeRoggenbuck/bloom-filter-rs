@@ -8,7 +8,7 @@ A bloom filter has small false positive rate, and this rate can be decreased by 
 This specific implementation uses three different hashing algorithms.
 
 ## Use cases
-Bloom filter are very convenient for many different use cases.
+Bloom filters are very convenient for many different use cases.
 
 My favorite one is for checking if a username or unique exists somewhere. Bloom filter have very low memory usage as well as being fast, so for a solution that didn't need 100% accuracy and can get away with something close 99%, then a bloom filter might be the correct structure.
 
